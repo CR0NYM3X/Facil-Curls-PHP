@@ -278,11 +278,26 @@ class facilcurl
 	}
 
 
-	function tiempos($timeout=120,$timeconnect=0)
+	// -----------------------------  MODIFICACIONES
+
+
+	function tiempos($timeconnect=0,$ms=false,$timeout=false) // si ms = true el numero que pongas sera en milisegundos
 	{
 
-		curl_setopt($this->session, CURLOPT_TIMEOUT, $timeout); // Número máximo de segundos permitido para ejectuar funciones cURL. 
-		curl_setopt ($this->session, CURLOPT_CONNECTTIMEOUT , $timeconnect);// Número de segundos a esperar cuando se está intentado conectar. Use 0 para esperar indefinidamente.
+
+		if ($ms) {
+			curl_setopt ($this->session, CURLOPT_CONNECTTIMEOUT_MS , $timeconnect); // Esta line se expresa en mili segundos el tiempo que deberia ser es de 156 ms		
+		}
+		else{
+			curl_setopt ($this->session, CURLOPT_CONNECTTIMEOUT , $timeconnect);// Número de segundos a esperar cuando se está intentado conectar. Use 0 para esperar indefinidamente. 
+		}
+
+
+		if ($timeout) { // 120 segundos de tolerancia normal es lo que se pone
+			curl_setopt($this->session, CURLOPT_TIMEOUT, $timeout); // Número máximo de segundos permitido para ejectuar funciones cURL. 
+		}
+
+		
 
 	}
 
@@ -291,8 +306,10 @@ class facilcurl
 	{
 
 		curl_setopt($this->session, CURLOPT_PROXY, $ip); //El proxy HTTP para enviar peticiones a través de tunel. 	
+		//curl_setopt($this->session, CURLOPT_HTTPPROXYTUNNEL, TRUE);//TRUE para usar un tunel a través de un proxy HTTP.
+
+
 		if(isset($puerto)){curl_setopt($this->session, CURLOPT_PROXYPORT, $puerto);}// para asignar el puerto del proxy
-		curl_setopt($this->session, CURLOPT_HTTPPROXYTUNNEL, TRUE);//TRUE para usar un tunel a través de un proxy HTTP. 
 		if(isset($usuario) and isset($password))
 		{
 			curl_setopt($this->session, CURLOPT_PROXYUSERPWD, "$usuario:$password");  //si el proxy nesesita contraseña
@@ -313,7 +330,7 @@ class facilcurl
 			case 4:
 				curl_setopt($this->session, CURLOPT_PROXYTYPE , $this->type_proxy[4]);
 				break;
-			
+
 			default:
 				echo "No se encontro el tipo_proxy solo existen 0=CURLPROXY_HTTP ,1= CURLPROXY_SOCKS4	,2= CURLPROXY_SOCKS5 ,3= CURLPROXY_SOCKS4A ,4 CURLPROXY_SOCKS5_HOSTNAME. ";
 				break;
@@ -382,7 +399,7 @@ class facilcurl
 
 
 
-	public function curl($url,$cookie=null,$ssl=0,$peticiones=null,$navegador=0,$puerto=null,$max_location=null,$timeout=null,$timeconnect=null)
+	public function curl($url,$cookie=null,$ssl=0,$peticiones=null,$navegador=0,$puerto=null,$max_location=null,$timeout=false,$timeconnect=null)
 	{
 
 		if (isset($url))
@@ -426,12 +443,14 @@ class facilcurl
 				$this->max_location($max_location); //mandando llamar metodo location
 			}
 			
-			if(isset($timeout) and !isset($timeout))
+			
+			if($timeout or isset($timeconnect))
 			{
-				$this->tiempos($timeout,$timeconnect); //mandando llamar metodo tiempos
+				$this->tiempos($timeconnect,$timeout); //mandando llamar metodo tiempos
 			}
 			
 			
+
 			curl_setopt($this->session, CURLOPT_HTTPHEADER, $this->varCabeceras); //enviar cabeseras
 			curl_setopt($this->session, CURLOPT_FOLLOWLOCATION, true); // permitir los location: si nos manda a otra paginas
 			curl_setopt($this->session, CURLOPT_RETURNTRANSFER, true); // TRUE para devolver el resultado de la transferencia como string del valor de curl_exec() 
@@ -439,7 +458,6 @@ class facilcurl
 			curl_setopt($this->session,  CURLOPT_ENCODING, "gzip,deflate,sdch" );//si se deja en "" maneja todas las codificaciones se pone basio para que soporte todas las codificaciones: es mejor -> [gzip,deflate,sdch]
 			curl_setopt($this->session, CURLOPT_FAILONERROR, true); // si hay un mensaje de error mayor de 400 se ignorara el codigo
 			curl_setopt($this->session, CURLINFO_HEADER_OUT, true);	 #habilitra para ver como esta mandando las cabeceras al servidor
-			//$this->proxy("127.0.0.1:8080");
 			
 
 		}
